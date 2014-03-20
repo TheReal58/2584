@@ -59,7 +59,7 @@ GameManager.prototype.addStartTiles = function () {
 // Adds a tile in a random position
 GameManager.prototype.addRandomTile = function () {
   if (this.grid.cellsAvailable()) {
-    var value = Math.random() < 0.9 ? 2 : 4;
+    var value = 1;
     var tile = new Tile(this.grid.randomAvailableCell(), value);
 
     this.grid.insertTile(tile);
@@ -99,6 +99,32 @@ GameManager.prototype.moveTile = function (tile, cell) {
   tile.updatePosition(cell);
 };
 
+
+GameManager.FIBONACCI = [ 1, 2 ];
+
+GameManager.prototype.fibonacciIndex = function (f) {
+  var i, F = GameManager.FIBONACCI;
+
+  for (i = 0; ; i++) {
+    if (i >= F.length) {
+      F[i] = F[i - 2] + F[i - 1];
+    }
+    if (F[i] == f) {
+      return i;
+    }
+  }
+};
+
+GameManager.prototype.canMerge = function (a, b) {
+  if (a == 1 && b == 1) {
+    return true;
+  } else {
+    a = this.fibonacciIndex(a);
+    b = this.fibonacciIndex(b);
+    return Math.abs(a - b) == 1;
+  }
+};
+
 // Move tiles on the grid in the specified direction
 GameManager.prototype.move = function (direction) {
   // 0: up, 1: right, 2:down, 3: left
@@ -126,8 +152,8 @@ GameManager.prototype.move = function (direction) {
         var next      = self.grid.cellContent(positions.next);
 
         // Only one merger per row traversal?
-        if (next && next.value === tile.value && !next.mergedFrom) {
-          var merged = new Tile(positions.next, tile.value * 2);
+        if (next && self.canMerge(next.value, tile.value) && !next.mergedFrom) {
+          var merged = new Tile(positions.next, tile.value + next.value);
           merged.mergedFrom = [tile, next];
 
           self.grid.insertTile(merged);
@@ -139,8 +165,8 @@ GameManager.prototype.move = function (direction) {
           // Update the score
           self.score += merged.value;
 
-          // The mighty 2048 tile
-          if (merged.value === 2048) self.won = true;
+          // The mighty 144 tile
+          if (merged.value === 144) self.won = true;
         } else {
           self.moveTile(tile, positions.farthest);
         }
